@@ -1336,6 +1336,17 @@ function displayPeriods()
     var periods = dhis2.period.generator.generateReversedPeriods( periodType, dhis2.de.currentPeriodOffset );
 
     periods = dhis2.period.generator.filterOpenPeriods( periodType, periods, openFuturePeriods, dsStartDate, dsEndDate );
+
+    var periodBlackList = dhis2.de.dataSets[dataSetId].dataInputPeriods
+        .filter(function(dip) { return ( dip.openingDate != "" && new Date( dip.openingDate ) > Date.now() ) || ( dip.closingDate != "" && new Date( dip.closingDate ) < Date.now() ); })
+        .map(function(dip) { return dip.period.isoPeriod; });
+  
+    if ( periodBlackList.length > 0 ) {
+        periods = periods
+            .filter(function (period) {
+                return periodBlackList.indexOf(period.iso) == -1
+            });
+    }
     
     clearListById( 'selectedPeriodId' );
 
